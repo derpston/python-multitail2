@@ -1,0 +1,18 @@
+Source: python-multitail2
+Section: python
+Priority: optional
+Maintainer: Derp Ston <derpston+packaging@sleepygeek.org>
+Build-Depends:
+    debhelper (>= 6.0.0),
+    python-support (>= 0.90)
+Standards-Version: 3.9.1
+
+Package: python-multitail2
+Architecture: all
+Depends:
+    ${python:Depends},
+    ${misc:Depends},
+Description: Python module for following multiple files at once
+ Like `tail -f` for python, but it supports accepting a glob spec like
+ '/var/log/*.log' and it adds, removes and reopens files as they are
+ created, deleted, and rotated.

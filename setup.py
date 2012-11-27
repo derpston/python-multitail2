@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+
+from distutils.core import setup
+
+setup(
+      name = 'multitail2'
+   ,  version = '0.1.0'
+   ,  description = 'Enables following multiple files new lines at once'
+   ,  long_description = """Accepts a glob spec like '/var/log/*.log' and \
+adds/removes/reopens files as they are created, deleted, and rotated."""
+   ,  author = 'Derp Ston'
+   ,  author_email = 'derpston+pypi@sleepygeek.org'
+   ,  url = 'https://github.com/derpston/python-multitail2'
+   ,  packages = ['']
+   ,  package_dir = {'': 'src'}
+   )
+
