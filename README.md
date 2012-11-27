@@ -5,6 +5,8 @@ Python module to follow new lines from multiple files at once, taking account of
 
 Suitable for following sets of logs where you don't necessarily know how many files there are, what their names are, and don't want to have to keep track of changes yourself.
 
+Doesn't (yet) support inotify for detecting file change events because of portability concerns and the lack of an inotify module in the Python standard library.
+
 Another one?
 ------------
 Yeah, another one. Other multitail implementations I found didn't support automatically following new files.
@@ -29,6 +31,10 @@ Emits (path, line) tuples representing the path to the file that each line comes
 ('/home/user/test/foo', 'bar')
 ('/home/user/test/foo', 'bar')
 ```
+
+TODO
+----
+* Use inotify, where available. Should not be a hard dependency.
 
 Bugs
 ----
