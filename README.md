@@ -13,14 +13,18 @@ Yeah, another one. Other multitail implementations I found didn't support automa
 
 Features
 --------
-* Accepts globbing syntax, like /var/log/*.log
+* Accepts globbing syntax, like /var/log/\*.log
 * Opens new files
 * Closes deleted files
 * Reopens rotated files
+* Non-blocking
+* Supports iteration
 
-Example
+Examples
 -------
 Emits (path, line) tuples representing the path to the file that each line comes from.
+
+#### Generator
 
 ```python
 >>> import multitail2
@@ -30,6 +34,16 @@ Emits (path, line) tuples representing the path to the file that each line comes
 ... 
 ('/home/user/test/foo', 'bar')
 ('/home/user/test/foo', 'bar')
+```
+
+#### Non-blocking polling
+```python
+>>> import multitail2
+>>> mt = multitail2.MultiTail("/home/user/test/*")
+>>> list(mt.poll())
+[('/home/user/test/foo', 'bar')]
+>>> list(mt.poll())
+[]
 ```
 
 TODO
