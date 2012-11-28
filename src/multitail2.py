@@ -3,7 +3,7 @@ import time
 import glob
 import os
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 class TailedFile:
    def __init__(self, path, pagesize = resource.getpagesize()):
@@ -73,6 +73,7 @@ class MultiTail:
       """`globspec` is a path pattern like '/var/log/*.log' suitable for passing to the glob module, and `interval` is a float specifying how many seconds to sleep between checks for new files and new content."""
       self._globspec = globspec
       self._interval = interval
+      self._last_scan = 0
       self._tailedfiles = {}
 
    def _rescan(self):
@@ -97,15 +98,22 @@ class MultiTail:
             # Open a file that we haven't seen yet.
             self._tailedfiles[path] = TailedFile(path)
 
+   def poll(self, force_rescan = False):
+      """A generator producing (path, line) tuples with lines seen since the last time poll() was called. Will not block. Checks for new/deleted/rotated files every `interval` seconds, but will check every time if `force_rescan` is True. (default False)"""
+      # Check for new, deleted, and rotated files.
+      if force_rescan or time.time() > self._last_scan + self._interval:
+         self._rescan()
+         self._last_scan = time.time()
+
+      # Read new lines from all files and yield them.
+      for path, tailedfile in self._tailedfiles.iteritems():
+         for line in tailedfile.readlines():
+            yield path, line
+
    def __iter__(self):
       while True:
-         # Check for new, deleted, and rotated files.
-         self._rescan()
-      
-         # Read new lines from all files and yield them.
-         for path, tailedfile in self._tailedfiles.iteritems():
-            for line in tailedfile.readlines():
-               yield path, line
+         for event in self.poll():
+            yield event
 
          time.sleep(self._interval)
    
