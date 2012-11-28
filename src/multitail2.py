@@ -6,9 +6,9 @@ import os
 __version__ = "0.1.1"
 
 class TailedFile:
-   def __init__(self, path, pagesize = resource.getpagesize()):
+   def __init__(self, path, pagesize = resource.getpagesize(), skip_to_end = True):
       self._path = path
-      self._open(path)
+      self._open(path, skip_to_end)
       self._buf = ""
       self._pagesize = pagesize
 
@@ -69,14 +69,16 @@ class TailedFile:
 class MultiTail:
    """Provides an iterator for getting new lines from one or more files, with regard for adding new files automatically as they are created, not tracking files once they are deleted, and reopening rotated files."""
 
-   def __init__(self, globspec, interval = 1.0):
-      """`globspec` is a path pattern like '/var/log/*.log' suitable for passing to the glob module, and `interval` is a float specifying how many seconds to sleep between checks for new files and new content."""
+   def __init__(self, globspec, interval = 1.0, skip_to_end = True):
+      """`globspec` is a path pattern like '/var/log/*.log' suitable for passing to the glob module, and `interval` is a float specifying how many seconds to sleep between checks for new files and new content. If `skip_to_end` is False (default True) all existing lines will be reported as new content immediately."""
       self._globspec = globspec
       self._interval = interval
       self._last_scan = 0
       self._tailedfiles = {}
+    
+      self._rescan(skip_to_end = skip_to_end)
 
-   def _rescan(self):
+   def _rescan(self, skip_to_end = True):
       """Check for new files, deleted files, and rotated files."""
       # Get listing of matching files.
       paths = glob.glob(self._globspec)
@@ -96,13 +98,13 @@ class MultiTail:
                   del self._tailedfiles[path]
          except KeyError:
             # Open a file that we haven't seen yet.
-            self._tailedfiles[path] = TailedFile(path)
+            self._tailedfiles[path] = TailedFile(path, skip_to_end = skip_to_end)
 
    def poll(self, force_rescan = False):
       """A generator producing (path, line) tuples with lines seen since the last time poll() was called. Will not block. Checks for new/deleted/rotated files every `interval` seconds, but will check every time if `force_rescan` is True. (default False)"""
       # Check for new, deleted, and rotated files.
       if force_rescan or time.time() > self._last_scan + self._interval:
-         self._rescan()
+         self._rescan(skip_to_end = False)
          self._last_scan = time.time()
 
       # Read new lines from all files and yield them.
