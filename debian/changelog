@@ -1,3 +1,10 @@
+python-multitail2 (0.1.1) unstable; urgency=low
+
+  * Adding a MultiTail.poll() method that allows the user to check for new
+  content without blocking.
+  * When new files are detected and opened, don't skip to the end of them.
+
+ -- Derp Ston <derpston+packaging@sleepygeek.org>  Wed, 28 Nov 2012 09:10:00 +0000
 python-multitail2 (0.1.0) unstable; urgency=low
 
   * Initial release.
