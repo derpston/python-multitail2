@@ -52,7 +52,6 @@ TODO
 
 Bugs
 ----
-* Should probably be able to read files faster than resource.getpagesize() bytes per interval. With the defaults, this is 4k per second per open file.
 * Does not handle truncated files - new content will be ignored until the file size exceeds what it was previously.
 
 Contributing
