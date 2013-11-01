@@ -1,3 +1,9 @@
+python-multitail2 (1.0.0) unstable; urgency=low
+  
+  * Removing the 'pagesize' parameter and instead always reading
+  all new data from already open files.
+
+ -- Derp Ston <derpston+packaging@sleepygeek.org>  Fri, 1 Nov 2013 13:45:00 +0000
 python-multitail2 (0.1.1) unstable; urgency=low
 
   * Adding a MultiTail.poll() method that allows the user to check for new

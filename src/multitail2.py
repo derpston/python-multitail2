@@ -1,16 +1,14 @@
-import resource
 import time
 import glob
 import os
 
-__version__ = "0.1.1"
+__version__ = "1.0.0"
 
 class TailedFile:
-   def __init__(self, path, pagesize = resource.getpagesize(), skip_to_end = True):
+   def __init__(self, path, skip_to_end = True):
       self._path = path
       self._open(path, skip_to_end)
       self._buf = ""
-      self._pagesize = pagesize
 
    def _open(self, path, skip_to_end = True):
       """Open `path`, optionally seeking to the end if `skip_to_end` is True."""
@@ -28,11 +26,7 @@ class TailedFile:
 
    def _read(self):
       """Checks the file for new data and refills the buffer if it finds any."""
-      # XXX Reading only resource.getpagesize() bytes here limits the overall
-      # read speed of any one file to that number of bytes per _read()/readlines()
-      # call, which is done once per file per MultiTail interval. This might be as
-      # low as 4k/sec by default.
-      self._buf += self._fh.read(self._pagesize)
+      self._buf += self._fh.read()
 
    def hasBeenRotated(self):
       """Returns a boolean indicating whether the file has been removed and recreated during the time it has been open."""
