@@ -22,7 +22,7 @@ Features
 
 Examples
 -------
-Emits (path, line) tuples representing the path to the file that each line comes from.
+Emits ((path, offset), line) tuples representing the path to the file that each line comes from, along with a byte offset where the line begins.
 
 #### Generator
 
@@ -32,8 +32,8 @@ Emits (path, line) tuples representing the path to the file that each line comes
 >>> for line in mt:
 ...  print line
 ... 
-('/home/user/test/foo', 'bar')
-('/home/user/test/foo', 'bar')
+(('/home/user/test/foo', 0), 'bar')
+(('/home/user/test/foo', 4), 'bar')
 ```
 
 #### Non-blocking polling
@@ -41,7 +41,7 @@ Emits (path, line) tuples representing the path to the file that each line comes
 >>> import multitail2
 >>> mt = multitail2.MultiTail("/home/user/test/*")
 >>> list(mt.poll())
-[('/home/user/test/foo', 'bar')]
+[(('/home/user/test/foo', 0) 'bar')]
 >>> list(mt.poll())
 []
 ```
