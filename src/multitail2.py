@@ -1,8 +1,9 @@
 import time
 import glob
 import os
+import random
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 class TailedFile:
    _max_buf_size = 1 * 1024 * 1024 # 1mb
@@ -121,7 +122,13 @@ class MultiTail:
          self._last_scan = time.time()
 
       # Read new lines from all files and yield them.
-      for path, tailedfile in self._tailedfiles.iteritems():
+      # Files are read from in random order each time poll is called
+      # in an attempt to read from all files evenly.
+      keys = self._tailedfiles.keys()
+      random.shuffle(keys)
+      for path in keys:
+         tailedfile = self._tailedfiles[path]
+         
          for line, offset in tailedfile.readlines():
             self._offsets[path] = offset
             yield (path, offset), line
