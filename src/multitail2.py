@@ -3,7 +3,7 @@ import glob
 import os
 import random
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 class TailedFile:
    _max_buf_size = 1 * 1024 * 1024 # 1mb
@@ -14,6 +14,8 @@ class TailedFile:
       self._buf = ""
       self._offset = None
       self._open(path, skip_to_end, offset)
+      # Read in blocks of 500kb and limit the buffer to 2x this.
+      self._maxreadsize = 4096 * 500
 
    def _open(self, path, skip_to_end = True, offset = None):
       """Open `path`, optionally seeking to the end if `skip_to_end` is True."""
@@ -39,7 +41,8 @@ class TailedFile:
 
    def _read(self, limit = None):
       """Checks the file for new data and refills the buffer if it finds any."""
-      self._buf += self._fh.read(limit)
+      if len(self._buf) < self._maxreadsize:
+         self._buf += self._fh.read(self._maxreadsize)
 
    def hasBeenRotated(self):
       """Returns a boolean indicating whether the file has been removed and recreated during the time it has been open."""
