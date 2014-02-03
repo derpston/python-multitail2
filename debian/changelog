@@ -1,4 +1,4 @@
-python-multitail2 (1.1.0) unstable; urgency=low
+python-multitail2 (1.2.0) unstable; urgency=low
   
   * Reinstating the pagesize feature because not having it introduces a
   bug when the skip_to_end option is not enabled for large files.
