@@ -3,19 +3,16 @@ import glob
 import os
 import random
 
-__version__ = "1.2.0"
+__version__ = "1.2.2"
 
 class TailedFile:
-   _max_buf_size = 1 * 1024 * 1024 # 1mb
-   _read_size = 4096 * 100 # 400kb
-
    def __init__(self, path, skip_to_end = True, offset = None):
       self._path = path
       self._buf = ""
       self._offset = None
       self._open(path, skip_to_end, offset)
-      # Read in blocks of 500kb and limit the buffer to 2x this.
-      self._maxreadsize = 4096 * 500
+      # Read in blocks of 4kb and limit the buffer to 2x this.
+      self._maxreadsize = 4096
 
    def _open(self, path, skip_to_end = True, offset = None):
       """Open `path`, optionally seeking to the end if `skip_to_end` is True."""
@@ -70,8 +67,7 @@ class TailedFile:
 
    def readlines(self):
       """A generator producing any newline-delimited strings written to the file since the last time readlines() was called."""
-      if len(self._buf) < self._max_buf_size:
-         self._read(self._read_size)
+      self._read()
 
       while "\n" in self._buf:
          line, self._buf = self._buf.split("\n", 1)

@@ -1,3 +1,8 @@
+python-multitail2 (1.2.2) unstable; urgency=low
+  
+  * Tuning the size of the buffer and reads.
+
+ -- Derp Ston <derpston+packaging@sleepygeek.org>  Tue, 4 Feb 2014 13:05:00 +0000
 python-multitail2 (1.2.0) unstable; urgency=low
   
   * Reinstating the pagesize feature because not having it introduces a
