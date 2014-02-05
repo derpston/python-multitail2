@@ -1,3 +1,9 @@
+python-multitail2 (1.3.0) unstable; urgency=low
+  
+  * poll will now not stop yielding results as long as there is more data
+  to read.
+
+ -- Derp Ston <derpston+packaging@sleepygeek.org>  Tue, 4 Feb 2014 22:30:00 +0000
 python-multitail2 (1.2.2) unstable; urgency=low
   
   * Tuning the size of the buffer and reads.

@@ -3,7 +3,7 @@ import glob
 import os
 import random
 
-__version__ = "1.2.2"
+__version__ = "1.3.0"
 
 class TailedFile:
    def __init__(self, path, skip_to_end = True, offset = None):
@@ -38,8 +38,7 @@ class TailedFile:
 
    def _read(self, limit = None):
       """Checks the file for new data and refills the buffer if it finds any."""
-      if len(self._buf) < self._maxreadsize:
-         self._buf += self._fh.read(self._maxreadsize)
+      self._buf += self._fh.read(limit)
 
    def hasBeenRotated(self):
       """Returns a boolean indicating whether the file has been removed and recreated during the time it has been open."""
@@ -66,14 +65,22 @@ class TailedFile:
          return False
 
    def readlines(self):
-      """A generator producing any newline-delimited strings written to the file since the last time readlines() was called."""
-      self._read()
+      """A generator producing lines from the file."""
 
-      while "\n" in self._buf:
-         line, self._buf = self._buf.split("\n", 1)
-         offset = self._offset
-         self._offset += len(line) + 1
-         yield line, offset
+      while True:
+         # Fill up the buffer if necessary.
+         if len(self._buf) < self._maxreadsize:
+            self._read(self._maxreadsize)
+
+         if '\n' in self._buf:
+            # Look for the next line.
+            line, self._buf = self._buf.split("\n", 1)
+            offset = self._offset
+            self._offset += len(line) + 1
+
+            yield line, offset
+         else:
+            raise StopIteration
 
 class MultiTail:
    """Provides an iterator for getting new lines from one or more files, with regard for adding new files automatically as they are created, not tracking files once they are deleted, and reopening rotated files."""
@@ -120,16 +127,24 @@ class MultiTail:
          self._rescan(skip_to_end = False)
          self._last_scan = time.time()
 
-      # Read new lines from all files and yield them.
-      # Files are read from in random order each time poll is called
-      # in an attempt to read from all files evenly.
-      keys = self._tailedfiles.keys()
-      random.shuffle(keys)
-      for path in keys:
-         tailedfile = self._tailedfiles[path]
-         
-         for line, offset in tailedfile.readlines():
-            self._offsets[path] = offset
+      filereaders = {}
+      for path, tailedfile in self._tailedfiles.iteritems():
+         filereaders[path] = tailedfile.readlines()
+
+      # One line is read from each file in turn, in an attempt to read
+      # from all files evenly. They'll be in an undefined order because
+      # of using a dict for filereaders, but that's not a problem
+      # because some entropy here is desirable for evenness.
+      while len(filereaders) > 0:
+         for path in filereaders.keys():
+            lines = filereaders[path]
+            try:
+               line, offset = lines.next()
+            except StopIteration:
+               # Reached end the of this file.
+               del filereaders[path]
+               break
+            
             yield (path, offset), line
 
    def __iter__(self):
@@ -137,6 +152,7 @@ class MultiTail:
          for event in self.poll():
             yield event
 
+         # TODO Replace this with FAM/inotify for watching filesystem events.
          time.sleep(self._interval)
  
    def offsets(self):
