@@ -1,3 +1,8 @@
+python-multitail2 (1.3.1) unstable; urgency=low
+  
+  * Using a larger buffer and reading from it more efficiently.
+
+ -- Derp Ston <derpston+packaging@sleepygeek.org>  Wed, 5 Feb 2014 20:10:00 +0000
 python-multitail2 (1.3.0) unstable; urgency=low
   
   * poll will now not stop yielding results as long as there is more data
