@@ -11,8 +11,9 @@ class TailedFile:
       self._buf = ""
       self._offset = None
       self._open(path, skip_to_end, offset)
-      # Read in blocks of 4kb and limit the buffer to 2x this.
-      self._maxreadsize = 4096
+      self._bufoffset = 0
+      # Read in blocks of 32kb and limit the buffer to 2x this.
+      self._maxreadsize = 4096 * 8
 
    def _open(self, path, skip_to_end = True, offset = None):
       """Open `path`, optionally seeking to the end if `skip_to_end` is True."""
@@ -68,18 +69,28 @@ class TailedFile:
       """A generator producing lines from the file."""
 
       while True:
+         # Clean the buffer sometimes.
+         if self._bufoffset > (self._maxreadsize / 2):
+            self._buf = self._buf[self._bufoffset:]
+            self._bufoffset = 0
+
          # Fill up the buffer if necessary.
          if len(self._buf) < self._maxreadsize:
             self._read(self._maxreadsize)
 
-         if '\n' in self._buf:
-            # Look for the next line.
-            line, self._buf = self._buf.split("\n", 1)
+         # Look for the next line.
+         try:
+            next_newline = self._buf.index("\n", self._bufoffset)
+            line = self._buf[self._bufoffset:next_newline]
+            self._bufoffset = next_newline + 1
+            
+            # Save the current file offset for yielding and advance the file offset.
             offset = self._offset
             self._offset += len(line) + 1
-
             yield line, offset
-         else:
+
+         except ValueError:
+            # Reached the end of the buffer without finding any newlines.
             raise StopIteration
 
 class MultiTail:
