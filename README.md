@@ -41,7 +41,7 @@ Emits ((path, offset), line) tuples representing the path to the file that each 
 >>> import multitail2
 >>> mt = multitail2.MultiTail("/home/user/test/*")
 >>> list(mt.poll())
-[(('/home/user/test/foo', 0) 'bar')]
+[(('/home/user/test/foo', 0), 'bar')]
 >>> list(mt.poll())
 []
 ```
