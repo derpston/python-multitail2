@@ -39,7 +39,7 @@ class TailedFile:
 
    def _read(self, limit = None):
       """Checks the file for new data and refills the buffer if it finds any."""
-      self._buf += self._fh.read(limit)
+      self._buf += os.read(self._fh.fileno(), limit)
 
    def hasBeenRotated(self):
       """Returns a boolean indicating whether the file has been removed and recreated during the time it has been open."""
