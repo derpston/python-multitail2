@@ -39,7 +39,14 @@ class TailedFile:
 
    def _read(self, limit = None):
       """Checks the file for new data and refills the buffer if it finds any."""
-      self._buf += os.read(self._fh.fileno(), limit)
+      # 64k ought to be enough for anybody
+      limit = limit or 65535
+      while True:
+         data = os.read(self._fh.fileno(), limit)
+         if data == '':
+            break
+         self._buf += data
+
 
    def hasBeenRotated(self):
       """Returns a boolean indicating whether the file has been removed and recreated during the time it has been open."""
@@ -170,5 +177,4 @@ class MultiTail:
       """A generator producing a (path, offset) tuple for all tailed files."""
       for path, tailedfile in self._tailedfiles.iteritems():
          yield path, tailedfile._offset
-
 
