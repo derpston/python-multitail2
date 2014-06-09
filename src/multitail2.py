@@ -3,7 +3,7 @@ import glob
 import os
 import random
 
-__version__ = "1.3.1"
+__version__ = "1.4.0"
 
 class TailedFile:
    def __init__(self, path, skip_to_end = True, offset = None):
