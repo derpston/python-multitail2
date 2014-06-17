@@ -39,13 +39,19 @@ class TailedFile:
 
    def _read(self, limit = None):
       """Checks the file for new data and refills the buffer if it finds any."""
-      # 64k ought to be enough for anybody
-      limit = limit or 65535
-      while True:
-         data = os.read(self._fh.fileno(), limit)
-         if data == '':
-            break
-         self._buf += data
+      # The code that used to be here was self._fh.read(limit)
+      # However, this broke on OSX. os.read, however, works fine, but doesn't
+      # take the None argument or have any way to specify "read to the end".
+      # This emulates that behaviour.
+      if limit is not None:
+         self._buf += os.read(self._fh.fileno(), limit)
+      else:
+         while True:
+            dataread = os.read(self._fh.fileno(), 65535)
+            if len(dataread) > 0:
+               self._buf += dataread
+            else:
+               break
 
 
    def hasBeenRotated(self):
