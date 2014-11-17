@@ -11,7 +11,7 @@ adds/removes/reopens files as they are created, deleted, and rotated."""
    ,  author = 'Derp Ston'
    ,  author_email = 'derpston+pypi@sleepygeek.org'
    ,  url = 'https://github.com/derpston/python-multitail2'
-   ,  packages = ['']
+   ,  packages = []
    ,  package_dir = {'': 'src'}
    )
 
