@@ -19,6 +19,22 @@ class MultiReadTest(unittest.TestCase):
          self.assertEqual(actual, expected)
 
 
+   def test_read_without_limit(self):
+      """
+      When we read from a file without a specified limit, read the remainder.
+      """
+      with tempfile.NamedTemporaryFile() as temp:
+        with tempfile.NamedTemporaryFile() as temp2:
+            mt = multitail2.MultiTail([temp.name,temp2.name])
+            self.assertEqual([], list(mt.poll()))
+            temp.write('Some data' + os.linesep)
+            temp.flush()
+            temp2.write('Some data2' + os.linesep)
+            temp2.flush()
+            actual = list(mt.poll())
+            expected = [((temp.name, 0), 'Some data'),((temp2.name, 0), 'Some data2')]
+            self.assertEqual(actual, expected)
+
 class TailedFileTest(unittest.TestCase):
 
    def test_read_with_limit(self):
