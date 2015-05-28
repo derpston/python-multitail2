@@ -31,8 +31,8 @@ class MultiReadTest(unittest.TestCase):
             temp.flush()
             temp2.write('Some data2' + os.linesep)
             temp2.flush()
-            actual = list(mt.poll())
-            expected = [((temp.name, 0), 'Some data'),((temp2.name, 0), 'Some data2')]
+            actual = set(mt.poll())
+            expected = {((temp.name, 0), 'Some data'),((temp2.name, 0), 'Some data2')}
             self.assertEqual(actual, expected)
 
 class TailedFileTest(unittest.TestCase):
@@ -61,6 +61,27 @@ class TailedFileTest(unittest.TestCase):
          # Now read less than that.
          f._read()
          self.assertEqual(70000, len(f._buf))
+
+   def test_read_longline(self):
+      """
+      When a line larger than half the buffer size is encountered it should be
+      skipped.
+      """
+      with tempfile.NamedTemporaryFile() as temp:
+         f = multitail2.TailedFile(temp.name, skip_to_end=False)
+         # Write a "large" amount of data.
+         temp.write('a' * 100 + '\n')
+         temp.write('b' * 70000 + '\n')
+         temp.write('c' * 100000 + '\n')
+         temp.write('d' * 200 + '\n')
+         temp.flush()
+         # Now read less than that.
+         for line, _ in f.readlines():
+             self.assertEqual('a' * 100, line)
+         while True:
+             for line, _ in f.readlines():
+                 self.assertEqual('d' * 200, line)
+                 return
 
 if __name__ == '__main__':
    unittest.main()
