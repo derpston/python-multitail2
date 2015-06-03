@@ -1,9 +1,11 @@
 import time
 import glob
+import logging
 import os
 import random
 
 __version__ = "1.4.0"
+logger = logging.getLogger(__name__)
 
 class TailedFile:
    def __init__(self, path, skip_to_end = True, offset = None):
@@ -14,6 +16,7 @@ class TailedFile:
       self._bufoffset = 0
       # Read in blocks of 32kb and limit the buffer to 2x this.
       self._maxreadsize = 4096 * 8
+      self._longline = False
 
    def _open(self, path, skip_to_end = True, offset = None):
       """Open `path`, optionally seeking to the end if `skip_to_end` is True."""
@@ -43,15 +46,14 @@ class TailedFile:
       # However, this broke on OSX. os.read, however, works fine, but doesn't
       # take the None argument or have any way to specify "read to the end".
       # This emulates that behaviour.
-      if limit is not None:
-         self._buf += os.read(self._fh.fileno(), limit)
-      else:
-         while True:
-            dataread = os.read(self._fh.fileno(), 65535)
-            if len(dataread) > 0:
-               self._buf += dataread
-            else:
-               break
+      while True:
+         dataread = os.read(self._fh.fileno(), limit or 65535)
+         if len(dataread) > 0:
+            self._buf += dataread
+            if limit is not None:
+               return True
+         else:
+            return False
 
 
    def hasBeenRotated(self):
@@ -81,6 +83,7 @@ class TailedFile:
    def readlines(self):
       """A generator producing lines from the file."""
 
+      at_eof = False
       while True:
          # Clean the buffer sometimes.
          if self._bufoffset > (self._maxreadsize / 2):
@@ -89,21 +92,31 @@ class TailedFile:
 
          # Fill up the buffer if necessary.
          if len(self._buf) < self._maxreadsize:
-            self._read(self._maxreadsize)
+            at_eof = not self._read(self._maxreadsize)
 
          # Look for the next line.
          try:
             next_newline = self._buf.index("\n", self._bufoffset)
             line = self._buf[self._bufoffset:next_newline]
             self._bufoffset = next_newline + 1
-            
             # Save the current file offset for yielding and advance the file offset.
             offset = self._offset
             self._offset += len(line) + 1
-            yield line, offset
+            if self._longline:
+               # This is the remaining chunk of a long line, we're not going
+               # to yield it.
+               self._longline = False
+            else:
+               yield line, offset
 
          except ValueError:
             # Reached the end of the buffer without finding any newlines.
+            if not at_eof:
+               # Line is longer than the half the buffer size? - Nope
+               logger.warning("Skipping over longline at %s:%d", self._path,
+                                                                 self._offset)
+               self._bufoffset = len(self._buf) - 1
+               self._longline = True
             raise StopIteration
 
 class MultiTail:
