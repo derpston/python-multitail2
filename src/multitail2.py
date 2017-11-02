@@ -4,7 +4,7 @@ import logging
 import os
 import random
 
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 logger = logging.getLogger(__name__)
 
 class TailedFile:
@@ -53,6 +53,9 @@ class TailedFile:
       # take the None argument or have any way to specify "read to the end".
       # This emulates that behaviour.
       while True:
+         # Check that we haven't closed this file
+         if not self._fh:
+            return False
          dataread = os.read(self._fh.fileno(), limit or 65535)
          if len(dataread) > 0:
             self._buf += dataread
