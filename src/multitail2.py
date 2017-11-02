@@ -18,6 +18,12 @@ class TailedFile:
       self._maxreadsize = 4096 * 8
       self._longline = False
 
+   def _close(self):
+      """If we have a file open, close it"""
+      if self._fh:
+         self._fh.close()
+         self._fh = None
+
    def _open(self, path, skip_to_end = True, offset = None):
       """Open `path`, optionally seeking to the end if `skip_to_end` is True."""
       fh = os.fdopen(os.open(path, os.O_RDONLY | os.O_NONBLOCK))
@@ -71,6 +77,8 @@ class TailedFile:
       """Reopens the file. Usually used after it has been rotated."""
       # Read any remaining content in the file and store it in a buffer.
       self._read()
+      # Close it to ensure we don't leak file descriptors
+      self._close()
       
       # Reopen the file.
       try:
@@ -82,6 +90,10 @@ class TailedFile:
 
    def readlines(self):
       """A generator producing lines from the file."""
+
+      # If the file is not open, there's nothing to return
+      if not self._fh:
+         raise StopIteration
 
       at_eof = False
       while True:
@@ -145,6 +157,7 @@ class MultiTail:
       # Remove files that don't appear in the new list.
       for path in self._tailedfiles.keys():
          if path not in paths:
+            self._tailedfiles[path]._close()
             del self._tailedfiles[path]
 
       # Add any files we don't have open yet.
