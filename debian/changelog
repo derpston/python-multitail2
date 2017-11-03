@@ -1,3 +1,8 @@
+python-multitail2 (1.4.1) unstable; urgency=low
+  
+  * Explicitly closed deleted files..
+
+ -- Derp Ston <derpston+packaging@sleepygeek.org>  Mon, 2 Nov 2017 14:30:00 +0000
 python-multitail2 (1.4.0) unstable; urgency=low
   
   * Fixing a bug where lines longer than 65k would prevent reading further.
