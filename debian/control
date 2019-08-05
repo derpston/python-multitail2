@@ -12,6 +12,7 @@ Architecture: all
 Depends:
     ${python:Depends},
     ${misc:Depends},
+    python-six
 Description: Python module for following multiple files at once
  Like `tail -f` for python, but it supports accepting a glob spec like
  '/var/log/*.log' and it adds, removes and reopens files as they are
