@@ -13,5 +13,6 @@ adds/removes/reopens files as they are created, deleted, and rotated."""
    ,  url = 'https://github.com/derpston/python-multitail2'
    ,  packages = []
    ,  package_dir = {'': 'src'}
+   ,  install_requires=['six']
    )
 

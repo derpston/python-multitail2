@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 import random
+import six
 
 __version__ = "1.4.1"
 logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ class TailedFile:
             return False
          dataread = os.read(self._fh.fileno(), limit or 65535)
          if len(dataread) > 0:
-            self._buf += dataread
+            self._buf += dataread.decode("utf-8")
             if limit is not None:
                return True
          else:
@@ -96,7 +97,7 @@ class TailedFile:
 
       # If the file is not open, there's nothing to return
       if not self._fh:
-         raise StopIteration
+         return
 
       at_eof = False
       while True:
@@ -132,7 +133,7 @@ class TailedFile:
                                                                  self._offset)
                self._bufoffset = len(self._buf) - 1
                self._longline = True
-            raise StopIteration
+            return
 
 class MultiTail:
    """Provides an iterator for getting new lines from one or more files, with regard for adding new files automatically as they are created, not tracking files once they are deleted, and reopening rotated files."""
@@ -183,7 +184,7 @@ class MultiTail:
          self._last_scan = time.time()
 
       filereaders = {}
-      for path, tailedfile in self._tailedfiles.iteritems():
+      for path, tailedfile in six.iteritems(self._tailedfiles):
          filereaders[path] = tailedfile.readlines()
 
       # One line is read from each file in turn, in an attempt to read
@@ -194,7 +195,7 @@ class MultiTail:
          for path in filereaders.keys():
             lines = filereaders[path]
             try:
-               line, offset = lines.next()
+               line, offset = next(lines)
             except StopIteration:
                # Reached end the of this file.
                del filereaders[path]
